@@ -8,6 +8,7 @@ pub enum Expr {
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParseErr {
     UnexpectedChar(char, Option<char>),
+    UnexpectedEOF(char),
 }
 
 enum ExprStart {
@@ -34,7 +35,7 @@ fn _parse_expr(chars: &mut Chars<'_>) -> Result<Expr, ParseErr> {
         ExprStart::LParen => match chars.next() {
             Some(')') => Ok(Expr::Unit),
             Some(c) => Err(ParseErr::UnexpectedChar(c, Some(')'))),
-            None => panic!("Unexpected end of input; expected ')'"),
+            None => Err(ParseErr::UnexpectedEOF(')')),
         },
     }
 }
@@ -56,15 +57,9 @@ mod tests {
         parse("?");
     }
 
-    // LParen
     #[test]
-    #[should_panic(expected = "Unexpected end of input; expected ')'")]
-    fn test_parse_lparen_err_eof() {
-        parse("(");
-    }
-
-    #[test]
-    fn test_parse_lparen_err_unrecognized() {
+    fn test_parse_lparen() {
+        assert_eq!(parse("("), Err(ParseErr::UnexpectedEOF(')')));
         assert_eq!(parse("(?"), Err(ParseErr::UnexpectedChar('?', Some(')'))));
     }
 
