@@ -3,21 +3,25 @@ pub enum Expr {
     Unit,
 }
 
+enum ExprStart {
+    LParen,
+}
+
 pub fn parse(str: &str) -> Expr {
     let mut chars = str.chars();
 
-    let first = match chars.next() {
-        None => panic!("Unexpected end of input; expected expr"),
-        Some(c) => c,
+    let start = match chars.next() {
+        Some('(') => ExprStart::LParen,
+        Some(c) => panic!("Unexpected character; expected start of expr: {}", c),
+        None => panic!("Unexpected end of input; expected start of expr"),
     };
 
-    match first {
-        '(' => match chars.next() {
+    match start {
+        ExprStart::LParen => match chars.next() {
             Some(')') => Expr::Unit,
             Some(c) => panic!("Unexpected character; expected ')': {}", c),
             None => panic!("Unexpected end of input; expected ')'"),
         },
-        c => panic!("Unexpected character; expected expr: {}", c),
     }
 }
 
@@ -26,7 +30,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse() {
+    fn test_parse_ok() {
         assert_eq!(parse("()"), Expr::Unit);
         assert_eq!(parse("() "), Expr::Unit);
     }
