@@ -33,7 +33,7 @@ fn _parse_expr(chars: &mut Chars<'_>) -> Result<Expr, ParseErr> {
     match start {
         ExprStart::LParen => match chars.next() {
             Some(')') => Ok(Expr::Unit),
-            Some(c) => panic!("Unexpected character; expected ')': '{c}'"),
+            Some(c) => Err(ParseErr::UnexpectedChar(c, Some(')'))),
             None => panic!("Unexpected end of input; expected ')'"),
         },
     }
@@ -64,19 +64,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Unexpected character; expected ')': '?'")]
     fn test_parse_lparen_err_unrecognized() {
-        parse("(?");
+        assert_eq!(parse("(?"), Err(ParseErr::UnexpectedChar('?', Some(')'))));
     }
 
-    // Unit
     #[test]
-    fn test_parse_unit_ok() {
+    fn test_parse_unit() {
         assert_eq!(parse("()"), Ok(Expr::Unit));
-    }
-
-    #[test]
-    fn test_parse_unit_err_end_not_eof() {
         assert_eq!(parse("()?"), Err(ParseErr::UnexpectedChar('?', None)));
     }
 }
