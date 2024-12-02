@@ -16,15 +16,15 @@ enum ExprStart {
 
 pub fn parse(str: &str) -> Result<Expr, ParseErr> {
     let mut chars = str.chars();
-    let expr = _parse_expr(&mut chars);
+    let expr_res = _parse_expr(&mut chars);
     match chars.next() {
         Some(c) => panic!("Unexpected character; expected end of input: '{c}'"),
         None => {}
     }
-    return Ok(expr);
+    expr_res
 }
 
-fn _parse_expr(chars: &mut Chars<'_>) -> Expr {
+fn _parse_expr(chars: &mut Chars<'_>) -> Result<Expr, ParseErr> {
     let start = match chars.next() {
         Some('(') => ExprStart::LParen,
         Some(c) => panic!("Unexpected character; expected start of expr: '{c}'"),
@@ -33,7 +33,7 @@ fn _parse_expr(chars: &mut Chars<'_>) -> Expr {
 
     match start {
         ExprStart::LParen => match chars.next() {
-            Some(')') => Expr::Unit,
+            Some(')') => Ok(Expr::Unit),
             Some(c) => panic!("Unexpected character; expected ')': '{c}'"),
             None => panic!("Unexpected end of input; expected ')'"),
         },
