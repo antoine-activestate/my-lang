@@ -42,8 +42,8 @@ pub fn parse(str: &str) -> Result<Expr, ParseErr> {
 fn _parse_expr(chars: &mut Chars<'_>) -> Result<Expr, ParseErr> {
     let start = match chars.next() {
         Some('(') => ExprStart::LParen,
-        Some(c) => panic!("Unexpected character; expected start of expr: '{c}'"),
-        None => panic!("Unexpected end of input; expected start of expr"),
+        Some(c) => return unexpected_char(c, Expected::ExprStart),
+        None => return unexpected_eof(Expected::ExprStart),
     };
 
     match start {
@@ -59,17 +59,10 @@ fn _parse_expr(chars: &mut Chars<'_>) -> Result<Expr, ParseErr> {
 mod tests {
     use super::*;
 
-    // Start
     #[test]
-    #[should_panic(expected = "Unexpected end of input; expected start of expr")]
-    fn test_parse_err_start_eof() {
-        parse("");
-    }
-
-    #[test]
-    #[should_panic(expected = "Unexpected character; expected start of expr: '?'")]
-    fn test_parse_err_start_unrecognized() {
-        parse("?");
+    fn test_parse_start() {
+        assert_eq!(parse(""), unexpected_eof(Expected::ExprStart));
+        assert_eq!(parse("?"), unexpected_char('?', Expected::ExprStart));
     }
 
     #[test]
