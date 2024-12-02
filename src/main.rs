@@ -1,9 +1,11 @@
 use my_lang::parse;
 
-fn main() {
+fn main() -> Result<(), i32> {
     let input = "()";
-    match parse(input) {
-        Err(err) => println!("err: {:?}", err),
-        Ok(expr) => println!("ok: {:?}", expr),
+    let output = parse(input);
+    println!("{:?}", output);
+    match output {
+        Ok(_) => Ok(()),
+        Err(_) => Err(1),
     }
 }
