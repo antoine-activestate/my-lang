@@ -7,8 +7,23 @@ pub enum Expr {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParseErr {
-    UnexpectedChar(char, Option<char>),
-    UnexpectedEOF(char),
+    UnexpectedChar(char, Expected),
+    UnexpectedEOF(Expected),
+}
+
+fn unexpected_char<T>(c: char, expected: Expected) -> Result<T, ParseErr> {
+    Err(ParseErr::UnexpectedChar(c, expected))
+}
+
+fn unexpected_eof<T>(expected: Expected) -> Result<T, ParseErr> {
+    Err(ParseErr::UnexpectedEOF(expected))
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Expected {
+    EOF,
+    Char(char),
+    ExprStart,
 }
 
 enum ExprStart {
@@ -19,7 +34,7 @@ pub fn parse(str: &str) -> Result<Expr, ParseErr> {
     let mut chars = str.chars();
     let expr_res = _parse_expr(&mut chars);
     match chars.next() {
-        Some(c) => Err(ParseErr::UnexpectedChar(c, None)),
+        Some(c) => unexpected_char(c, Expected::EOF),
         None => expr_res,
     }
 }
@@ -34,8 +49,8 @@ fn _parse_expr(chars: &mut Chars<'_>) -> Result<Expr, ParseErr> {
     match start {
         ExprStart::LParen => match chars.next() {
             Some(')') => Ok(Expr::Unit),
-            Some(c) => Err(ParseErr::UnexpectedChar(c, Some(')'))),
-            None => Err(ParseErr::UnexpectedEOF(')')),
+            Some(c) => unexpected_char(c, Expected::Char(')')),
+            None => unexpected_eof(Expected::Char(')')),
         },
     }
 }
@@ -59,13 +74,13 @@ mod tests {
 
     #[test]
     fn test_parse_lparen() {
-        assert_eq!(parse("("), Err(ParseErr::UnexpectedEOF(')')));
-        assert_eq!(parse("(?"), Err(ParseErr::UnexpectedChar('?', Some(')'))));
+        assert_eq!(parse("("), unexpected_eof(Expected::Char(')')));
+        assert_eq!(parse("(?"), unexpected_char('?', Expected::Char(')')));
     }
 
     #[test]
     fn test_parse_unit() {
         assert_eq!(parse("()"), Ok(Expr::Unit));
-        assert_eq!(parse("()?"), Err(ParseErr::UnexpectedChar('?', None)));
+        assert_eq!(parse("()?"), unexpected_char('?', Expected::EOF));
     }
 }
