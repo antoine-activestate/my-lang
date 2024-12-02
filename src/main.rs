@@ -1,5 +1,5 @@
-use my_lang::add_one;
+use my_lang::parse;
 
 fn main() {
-    println!("Hello World! {}", add_one(123))
+    println!("{:?}", parse("()"))
 }

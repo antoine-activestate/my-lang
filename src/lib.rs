@@ -1,5 +1,24 @@
-pub fn add_one(i: i64) -> i64 {
-    i + 1
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Expr {
+    Unit,
+}
+
+pub fn parse(str: &str) -> Expr {
+    let mut chars = str.chars();
+
+    let first = match chars.next() {
+        None => panic!("Unexpected end of input; expected expr"),
+        Some(c) => c,
+    };
+
+    match first {
+        '(' => match chars.next() {
+            Some(')') => Expr::Unit,
+            Some(c) => panic!("Unexpected character; expected ')': {}", c),
+            None => panic!("Unexpected end of input; expected ')'"),
+        },
+        c => panic!("Unexpected character; expected expr: {}", c),
+    }
 }
 
 #[cfg(test)]
@@ -7,7 +26,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_add_one() {
-        assert_eq!(add_one(1), 2);
+    fn test_parse() {
+        assert_eq!(parse("()"), Expr::Unit);
+        assert_eq!(parse("() "), Expr::Unit);
     }
 }
