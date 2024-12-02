@@ -5,18 +5,23 @@ pub enum Expr {
     Unit,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum ParseErr {
+    Raw(String),
+}
+
 enum ExprStart {
     LParen,
 }
 
-pub fn parse(str: &str) -> Expr {
+pub fn parse(str: &str) -> Result<Expr, ParseErr> {
     let mut chars = str.chars();
     let expr = _parse_expr(&mut chars);
     match chars.next() {
         Some(c) => panic!("Unexpected character; expected end of input: '{c}'"),
         None => {}
     }
-    return expr;
+    return Ok(expr);
 }
 
 fn _parse_expr(chars: &mut Chars<'_>) -> Expr {
@@ -68,7 +73,7 @@ mod tests {
     // Unit
     #[test]
     fn test_parse_unit_ok() {
-        assert_eq!(parse("()"), Expr::Unit);
+        assert_eq!(parse("()"), Ok(Expr::Unit));
     }
 
     #[test]
