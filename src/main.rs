@@ -55,18 +55,58 @@ fn main() {
 }
 
 fn parse(input: &mut Chars<'_>) -> Vec<Value> {
-    let (_, values) = parse_many(input);
+    let first = match input.next() {
+        None => panic!("parse: unexpected end of input"),
+        Some(c) => c,
+    };
+
+    let (_, values) = parse_many(input, first);
     values
 }
 
-fn parse_many(input: &mut Chars<'_>) -> (Option<char>, Vec<Value>) {
-    let first = match parse_comments_whitespace(input) {
+fn parse_many(input: &mut Chars<'_>, first: char) -> (Option<char>, Vec<Value>) {
+    let first = match parse_ign_many(input, first) {
         None => panic!("parse_many: unexpected end of input"),
         Some(c) => c,
     };
 
     let (next, value) = parse_one(input, first);
     (next, vec![value])
+}
+
+fn parse_ign_many(input: &mut Chars<'_>, mut first: char) -> Option<char> {
+    loop {
+        let (next, consumed) = parse_ign_one(input, first);
+        if !consumed {
+            return next;
+        }
+
+        match next {
+            None => return None,
+            Some(c) => {
+                first = c;
+            }
+        }
+    }
+}
+
+fn parse_ign_one(input: &mut Chars<'_>, first: char) -> (Option<char>, bool) {
+    match first {
+        '#' => (parse_comment(input), true),
+        ' ' => (input.next(), true),
+        '\n' => (input.next(), true),
+        _ => return (Some(first), false),
+    }
+}
+
+fn parse_comment(input: &mut Chars<'_>) -> Option<char> {
+    loop {
+        match input.next() {
+            None => return None,
+            Some('\n') => return input.next(),
+            _ => continue,
+        }
+    }
 }
 
 fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
@@ -86,32 +126,6 @@ fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
     }
 
     panic!("parse_one: unexpected first char '{}'", first);
-}
-
-fn parse_comments_whitespace(input: &mut Chars<'_>) -> Option<char> {
-    loop {
-        let next = input.next();
-        match next {
-            None => return None,
-            Some(c) if c == '#' => {
-                parse_comment(input);
-                continue;
-            }
-            Some(c) if c == ' ' => continue,
-            Some(c) if c == '\n' => continue,
-            _ => return next,
-        }
-    }
-}
-
-fn parse_comment(input: &mut Chars<'_>) {
-    loop {
-        match input.next() {
-            None => return,
-            Some('\n') => return,
-            _ => continue,
-        }
-    }
 }
 
 // Ident
@@ -182,6 +196,8 @@ fn parse_str(input: &mut Chars<'_>) -> (Option<char>, Value) {
     loop {
         let next = input.next();
         match next {
+            None => panic!("parse_str: unexpected end of input; expected '\"'"),
+            Some('\n') => panic!("parse_str: illegal newline '\\n'"),
             Some(c) if c != QUOTE => {
                 acc.push(c);
             }
