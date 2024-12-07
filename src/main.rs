@@ -113,6 +113,26 @@ fn parse_many(input: &mut Chars<'_>, first: char) -> (Option<char>, Vec<Val>) {
     }
 }
 
+fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Val) {
+    // Ident
+    if is_alpha(first) {
+        return parse_ident(input, first);
+    }
+
+    // Int
+    if first == MINUS || is_num(first) {
+        return parse_int(input, first);
+    }
+
+    // Str
+    if first == QUOTE {
+        return parse_str(input);
+    }
+
+    panic!("parse_one: unexpected first char '{}'", first);
+}
+
+// Ign
 fn parse_ign_many(input: &mut Chars<'_>, mut first: char) -> Option<char> {
     loop {
         let (next, consumed) = parse_ign_one(input, first);
@@ -146,25 +166,6 @@ fn parse_comment(input: &mut Chars<'_>) -> Option<char> {
             _ => continue,
         }
     }
-}
-
-fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Val) {
-    // Ident
-    if is_alpha(first) {
-        return parse_ident(input, first);
-    }
-
-    // Int
-    if first == MINUS || is_num(first) {
-        return parse_int(input, first);
-    }
-
-    // Str
-    if first == QUOTE {
-        return parse_str(input);
-    }
-
-    panic!("parse_one: unexpected first char '{}'", first);
 }
 
 // Ident
