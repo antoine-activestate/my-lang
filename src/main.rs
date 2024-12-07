@@ -26,22 +26,31 @@ enum Value {
 fn main() {
     let cases = vec![
         // Idents
-        "True",
-        "False",
-        "Nil",
+        ("Nil", vec![Value::Nil]),
+        ("False", vec![Value::Bool(false)]),
+        ("True", vec![Value::Bool(true)]),
         // Ints
-        "0",
-        "123",
-        "-0",
-        "-123",
+        ("0", vec![Value::Int(0)]),
+        ("123", vec![Value::Int(123)]),
+        ("-0", vec![Value::Int(0)]),
+        ("-123", vec![Value::Int(-123)]),
         // Strs
-        "\"\"",
-        "\"abc 123 éß😊\"",
+        ("\"\"", vec![Value::Str(String::from(""))]),
+        (
+            "\"abc 123 éß😊\"",
+            vec![Value::Str(String::from("abc 123 éß😊"))],
+        ),
         // Whitespace/comment
-        " \n# abc 123 \"\"\nNil",
+        (" \n# abc 123 \"\"\nNil", vec![Value::Nil]),
     ];
-    for case in cases {
-        println!("{case}: {:?}", parse(&mut case.chars()));
+    for (input, expected) in cases {
+        let actual = parse(&mut input.chars());
+        if actual != expected {
+            println!("===== FAILURE =====");
+            println!("input: {}", input);
+            println!("expected: {:?}", expected);
+            println!("actual:   {:?}", actual);
+        }
     }
 }
 
