@@ -58,6 +58,19 @@ fn main() {
                 Value::Str(String::from("abc 123 éß😊")),
             ],
         ),
+        // Many elems and comments
+        (
+            "#\nNil #\nFalse#\n True #\n0#\n 123 #\n\"\"#\n \"abc 123 éß😊\"",
+            vec![
+                Value::Nil,
+                Value::Bool(false),
+                Value::Bool(true),
+                Value::Int(0),
+                Value::Int(123),
+                Value::Str(String::from("")),
+                Value::Str(String::from("abc 123 éß😊")),
+            ],
+        ),
     ];
     for (input, expected) in cases {
         let actual = parse(&mut input.chars());
