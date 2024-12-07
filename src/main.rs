@@ -11,15 +11,16 @@ const DIGIT_9: char = '9';
 
 const DIGIT_0_INT: u32 = 0x30;
 
-const QUOTE: char = '-';
+const QUOTE: char = '"';
 const MINUS: char = '-';
 const UNDERSCORE: char = '_';
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 enum Value {
     Nil,
     Bool(bool),
     Int(i64),
+    Str(String),
 }
 
 fn main() {
@@ -35,6 +36,9 @@ fn main() {
         "-0",
         "-123",
         "-0123456789",
+        // Strs
+        "\"\"",
+        "\"abc 123 éß😊\"",
     ];
     for case in cases {
         println!("{case}: {:?}", parse(&mut case.chars()));
@@ -55,6 +59,11 @@ fn parse(input: &mut Chars<'_>) -> (Option<char>, Value) {
     // Int
     if first == MINUS || is_num(first) {
         return parse_int(input, first);
+    }
+
+    // Int
+    if first == QUOTE {
+        return parse_str(input);
     }
 
     panic!("parse: unexpected char '{}'", first);
@@ -120,6 +129,23 @@ fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
 
 fn char_to_digit(c: char) -> i64 {
     i64::from(u32::from(c) - DIGIT_0_INT)
+}
+
+// Str
+fn parse_str(input: &mut Chars<'_>) -> (Option<char>, Value) {
+    let mut acc = vec![];
+    loop {
+        let next = input.next();
+        match next {
+            Some(c) if c != QUOTE => {
+                acc.push(c);
+            }
+            _ => {
+                let str = acc.into_iter().collect();
+                return (None, Value::Str(str));
+            }
+        }
+    }
 }
 
 // Utils
