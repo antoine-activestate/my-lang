@@ -197,7 +197,7 @@ fn parse_str(input: &mut Chars<'_>) -> (Option<char>, Value) {
         let next = input.next();
         match next {
             None => panic!("parse_str: unexpected end of input; expected '\"'"),
-            Some('\n') => panic!("parse_str: illegal newline '\\n'"),
+            Some('\n') => panic!("parse_str: unexpected newline; expected '\"'"),
             Some(c) if c != QUOTE => {
                 acc.push(c);
             }
