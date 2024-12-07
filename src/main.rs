@@ -59,7 +59,7 @@ fn parse(input: &mut Chars<'_>) -> (Option<char>, Value) {
         return parse_int(input, first);
     }
 
-    // Int
+    // Str
     if first == QUOTE {
         return parse_str(input);
     }
