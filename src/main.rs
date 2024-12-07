@@ -9,13 +9,15 @@ const UPPER_Z: char = 'Z';
 const DIGIT_0: char = '0';
 const DIGIT_9: char = '9';
 
+const DIGIT_0_INT: u32 = 0x30;
+
 const UNDERSCORE: char = '_';
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Value {
     Nil,
     Bool(bool),
-    Int(u64),
+    Int(i64),
 }
 
 fn main() {
@@ -76,7 +78,7 @@ fn resolve_ident(ident: String) -> Value {
 
 // Int
 fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
-    let mut acc: u64 = char_to_digit(first);
+    let mut acc: i64 = char_to_digit(first);
     loop {
         let next = input.next();
         match next {
@@ -90,8 +92,8 @@ fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
     }
 }
 
-fn char_to_digit(c: char) -> u64 {
-    u64::from(c) - u64::from(DIGIT_0)
+fn char_to_digit(c: char) -> i64 {
+    i64::from(u32::from(c) - DIGIT_0_INT)
 }
 
 // Utils
