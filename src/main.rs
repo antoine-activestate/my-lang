@@ -66,7 +66,7 @@ fn parse_many(input: &mut Chars<'_>) -> (Option<char>, Vec<Value>) {
 
 fn parse_one(input: &mut Chars<'_>) -> (Option<char>, Value) {
     let first = match parse_comments_whitespace(input) {
-        None => panic!("parse: unexpected end of input"),
+        None => panic!("parse_one: unexpected end of input"),
         Some(c) => c,
     };
 
@@ -85,7 +85,7 @@ fn parse_one(input: &mut Chars<'_>) -> (Option<char>, Value) {
         return parse_str(input);
     }
 
-    panic!("parse: unexpected char '{}'", first);
+    panic!("parse_one: unexpected first char '{}'", first);
 }
 
 fn parse_comments_whitespace(input: &mut Chars<'_>) -> Option<char> {
