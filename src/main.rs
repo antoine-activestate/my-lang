@@ -43,7 +43,17 @@ fn main() {
     }
 }
 
-fn parse(input: &mut Chars<'_>) -> (Option<char>, Value) {
+fn parse(input: &mut Chars<'_>) -> Vec<Value> {
+    let (_, values) = parse_many(input);
+    values
+}
+
+fn parse_many(input: &mut Chars<'_>) -> (Option<char>, Vec<Value>) {
+    let (next, value) = parse_one(input);
+    (next, vec![value])
+}
+
+fn parse_one(input: &mut Chars<'_>) -> (Option<char>, Value) {
     let first = match input.next() {
         None => panic!("parse: unexpected end of input"),
         Some(c) => c,
