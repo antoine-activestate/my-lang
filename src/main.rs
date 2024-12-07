@@ -26,17 +26,17 @@ enum Value {
 fn main() {
     let cases = vec![
         // Idents
-        "True",
-        "False",
+        " True",
+        "\nFalse",
         "Nil",
         // Ints
-        "0",
-        "123",
+        " 0",
+        "\n123",
         "-0",
         "-123",
         // Strs
-        "\"\"",
-        "\"abc 123 éß😊\"",
+        " \"\"",
+        "\n\"abc 123 éß😊\"",
     ];
     for case in cases {
         println!("{case}: {:?}", parse(&mut case.chars()));
@@ -54,7 +54,7 @@ fn parse_many(input: &mut Chars<'_>) -> (Option<char>, Vec<Value>) {
 }
 
 fn parse_one(input: &mut Chars<'_>) -> (Option<char>, Value) {
-    let first = match input.next() {
+    let first = match ignore_comments_whitespace(input) {
         None => panic!("parse: unexpected end of input"),
         Some(c) => c,
     };
@@ -75,6 +75,18 @@ fn parse_one(input: &mut Chars<'_>) -> (Option<char>, Value) {
     }
 
     panic!("parse: unexpected char '{}'", first);
+}
+
+fn ignore_comments_whitespace(input: &mut Chars<'_>) -> Option<char> {
+    loop {
+        let next = input.next();
+        match next {
+            None => return None,
+            Some(c) if c == ' ' => continue,
+            Some(c) if c == '\n' => continue,
+            _ => return next,
+        }
+    }
 }
 
 // Ident
