@@ -16,7 +16,7 @@ const MINUS: char = '-';
 const UNDERSCORE: char = '_';
 
 #[derive(Clone, Debug, PartialEq)]
-enum Value {
+enum Val {
     Nil,
     Bool(bool),
     Int(i64),
@@ -29,46 +29,46 @@ fn main() {
         ("", vec![]),
         (" ", vec![]),
         // Idents
-        ("Nil", vec![Value::Nil]),
-        ("False", vec![Value::Bool(false)]),
-        ("True", vec![Value::Bool(true)]),
+        ("Nil", vec![Val::Nil]),
+        ("False", vec![Val::Bool(false)]),
+        ("True", vec![Val::Bool(true)]),
         // Ints
-        ("0", vec![Value::Int(0)]),
-        ("123", vec![Value::Int(123)]),
-        ("-0", vec![Value::Int(0)]),
-        ("-123", vec![Value::Int(-123)]),
+        ("0", vec![Val::Int(0)]),
+        ("123", vec![Val::Int(123)]),
+        ("-0", vec![Val::Int(0)]),
+        ("-123", vec![Val::Int(-123)]),
         // Strs
-        ("\"\"", vec![Value::Str(String::from(""))]),
+        ("\"\"", vec![Val::Str(String::from(""))]),
         (
             "\"abc 123 éß😊\"",
-            vec![Value::Str(String::from("abc 123 éß😊"))],
+            vec![Val::Str(String::from("abc 123 éß😊"))],
         ),
         // Whitespace/comment
-        (" \n# abc 123 \"\"\nNil", vec![Value::Nil]),
+        (" \n# abc 123 \"\"\nNil", vec![Val::Nil]),
         // Many elems
         (
             "Nil False True 0 123 \"\" \"abc 123 éß😊\"",
             vec![
-                Value::Nil,
-                Value::Bool(false),
-                Value::Bool(true),
-                Value::Int(0),
-                Value::Int(123),
-                Value::Str(String::from("")),
-                Value::Str(String::from("abc 123 éß😊")),
+                Val::Nil,
+                Val::Bool(false),
+                Val::Bool(true),
+                Val::Int(0),
+                Val::Int(123),
+                Val::Str(String::from("")),
+                Val::Str(String::from("abc 123 éß😊")),
             ],
         ),
         // Many elems and comments
         (
             "#\nNil #\nFalse#\n True #\n0#\n 123 #\n\"\"#\n \"abc 123 éß😊\"",
             vec![
-                Value::Nil,
-                Value::Bool(false),
-                Value::Bool(true),
-                Value::Int(0),
-                Value::Int(123),
-                Value::Str(String::from("")),
-                Value::Str(String::from("abc 123 éß😊")),
+                Val::Nil,
+                Val::Bool(false),
+                Val::Bool(true),
+                Val::Int(0),
+                Val::Int(123),
+                Val::Str(String::from("")),
+                Val::Str(String::from("abc 123 éß😊")),
             ],
         ),
     ];
@@ -83,7 +83,7 @@ fn main() {
     }
 }
 
-fn parse(input: &mut Chars<'_>) -> Vec<Value> {
+fn parse(input: &mut Chars<'_>) -> Vec<Val> {
     let (next, values) = match input.next() {
         None => return vec![],
         Some(c) => parse_many(input, c),
@@ -96,7 +96,7 @@ fn parse(input: &mut Chars<'_>) -> Vec<Value> {
     values
 }
 
-fn parse_many(input: &mut Chars<'_>, first: char) -> (Option<char>, Vec<Value>) {
+fn parse_many(input: &mut Chars<'_>, first: char) -> (Option<char>, Vec<Val>) {
     let mut acc = vec![];
     let mut next = parse_ign_many(input, first);
     loop {
@@ -148,7 +148,7 @@ fn parse_comment(input: &mut Chars<'_>) -> Option<char> {
     }
 }
 
-fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
+fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Val) {
     // Ident
     if is_alpha(first) {
         return parse_ident(input, first);
@@ -168,7 +168,7 @@ fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
 }
 
 // Ident
-fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
+fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, Val) {
     let mut acc = vec![first];
     loop {
         let next = input.next();
@@ -188,17 +188,17 @@ fn is_ident_next(c: char) -> bool {
     is_alpha(c) || is_num(c) || c == UNDERSCORE
 }
 
-fn resolve_ident(ident: String) -> Value {
+fn resolve_ident(ident: String) -> Val {
     match ident.as_str() {
-        "Nil" => Value::Nil,
-        "False" => Value::Bool(false),
-        "True" => Value::Bool(true),
+        "Nil" => Val::Nil,
+        "False" => Val::Bool(false),
+        "True" => Val::Bool(true),
         _ => panic!("resolve_ident: unknown identifier '{ident}'"),
     }
 }
 
 // Int
-fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
+fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Val) {
     let (neg, first) = if first == MINUS {
         let second = match input.next() {
             None => panic!("parse_int: unexpected end of input (expected digit after minus sign)"),
@@ -219,7 +219,7 @@ fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
             }
             _ => {
                 let signed = if neg { -acc } else { acc };
-                return (next, Value::Int(signed));
+                return (next, Val::Int(signed));
             }
         }
     }
@@ -230,7 +230,7 @@ fn char_to_digit(c: char) -> i64 {
 }
 
 // Str
-fn parse_str(input: &mut Chars<'_>) -> (Option<char>, Value) {
+fn parse_str(input: &mut Chars<'_>) -> (Option<char>, Val) {
     let mut acc = vec![];
     loop {
         let next = input.next();
@@ -240,7 +240,7 @@ fn parse_str(input: &mut Chars<'_>) -> (Option<char>, Value) {
             Some(c) => {
                 if c == QUOTE {
                     let str = acc.into_iter().collect();
-                    return (input.next(), Value::Str(str));
+                    return (input.next(), Val::Str(str));
                 }
                 acc.push(c);
             }
