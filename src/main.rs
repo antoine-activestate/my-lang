@@ -15,10 +15,11 @@ const UNDERSCORE: char = '_';
 enum Value {
     Nil,
     Bool(bool),
+    Int(u64),
 }
 
 fn main() {
-    let cases = vec!["True", "False", "Nil"];
+    let cases = vec!["True", "False", "Nil", "0", "123", "0123456789"];
     for case in cases {
         println!("{case}: {:?}", parse(&mut case.chars()));
     }
@@ -35,20 +36,25 @@ fn parse(input: &mut Chars<'_>) -> (Option<char>, Value) {
         return parse_ident(input, first);
     }
 
+    // Int
+    if is_num(first) {
+        return parse_int(input, first);
+    }
+
     panic!("[2] Unexpected char '{}'", first);
 }
 
 // Ident
 fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
-    let mut chars = vec![first];
+    let mut acc = vec![first];
     loop {
         let next = input.next();
         match next {
             Some(c) if is_ident_next(c) => {
-                chars.push(c);
+                acc.push(c);
             }
             _ => {
-                let ident_str = chars.into_iter().collect();
+                let ident_str = acc.into_iter().collect();
                 return (next, resolve_ident(ident_str));
             }
         }
@@ -66,6 +72,26 @@ fn resolve_ident(ident: String) -> Value {
         "True" => Value::Bool(true),
         _ => panic!("resolve_ident: unknown identifier '{ident}'"),
     }
+}
+
+// Int
+fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
+    let mut acc: u64 = char_to_digit(first);
+    loop {
+        let next = input.next();
+        match next {
+            Some(c) if is_num(c) => {
+                acc = acc * 10 + char_to_digit(c);
+            }
+            _ => {
+                return (next, Value::Int(acc));
+            }
+        }
+    }
+}
+
+fn char_to_digit(c: char) -> u64 {
+    u64::from(c) - u64::from(DIGIT_0)
 }
 
 // Utils
