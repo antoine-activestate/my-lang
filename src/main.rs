@@ -25,6 +25,9 @@ enum Value {
 
 fn main() {
     let cases = vec![
+        // Empty
+        ("", vec![]),
+        (" ", vec![]),
         // Idents
         ("Nil", vec![Value::Nil]),
         ("False", vec![Value::Bool(false)]),
@@ -42,6 +45,19 @@ fn main() {
         ),
         // Whitespace/comment
         (" \n# abc 123 \"\"\nNil", vec![Value::Nil]),
+        // Many elems
+        (
+            "Nil False True 0 123 \"\" \"abc 123 éß😊\"",
+            vec![
+                Value::Nil,
+                Value::Bool(false),
+                Value::Bool(true),
+                Value::Int(0),
+                Value::Int(123),
+                Value::Str(String::from("")),
+                Value::Str(String::from("\"abc 123 éß😊\"")),
+            ],
+        ),
     ];
     for (input, expected) in cases {
         let actual = parse(&mut input.chars());
@@ -55,23 +71,33 @@ fn main() {
 }
 
 fn parse(input: &mut Chars<'_>) -> Vec<Value> {
-    let first = match input.next() {
-        None => panic!("parse: unexpected end of input"),
-        Some(c) => c,
+    let (next, values) = match input.next() {
+        None => return vec![],
+        Some(c) => parse_many(input, c),
     };
 
-    let (_, values) = parse_many(input, first);
+    if let Some(c) = next {
+        panic!("parse: unexpected character '{}'; expected end of input", c)
+    }
+
     values
 }
 
 fn parse_many(input: &mut Chars<'_>, first: char) -> (Option<char>, Vec<Value>) {
-    let first = match parse_ign_many(input, first) {
-        None => panic!("parse_many: unexpected end of input"),
-        Some(c) => c,
-    };
+    let mut acc = vec![];
+    let mut next = parse_ign_many(input, first);
+    loop {
+        let (new_next, value) = match next {
+            None => return (None, acc),
+            Some(c) => parse_one(input, c),
+        };
 
-    let (next, value) = parse_one(input, first);
-    (next, vec![value])
+        acc.push(value);
+        next = match new_next {
+            None => return (None, acc),
+            Some(c) => parse_ign_many(input, c),
+        }
+    }
 }
 
 fn parse_ign_many(input: &mut Chars<'_>, mut first: char) -> Option<char> {
