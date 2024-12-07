@@ -11,6 +11,7 @@ const DIGIT_9: char = '9';
 
 const DIGIT_0_INT: u32 = 0x30;
 
+const QUOTE: char = '-';
 const MINUS: char = '-';
 const UNDERSCORE: char = '_';
 
@@ -52,17 +53,8 @@ fn parse(input: &mut Chars<'_>) -> (Option<char>, Value) {
     }
 
     // Int
-    if first == MINUS {
-        let second = match input.next() {
-            None => panic!("parse: unexpected end of input (expected digit after minus sign)"),
-            Some(c) => c,
-        };
-
-        if is_num(second) {
-            return parse_int(input, true, second);
-        }
-    } else if is_num(first) {
-        return parse_int(input, false, first);
+    if first == MINUS || is_num(first) {
+        return parse_int(input, first);
     }
 
     panic!("parse: unexpected char '{}'", first);
@@ -99,7 +91,18 @@ fn resolve_ident(ident: String) -> Value {
 }
 
 // Int
-fn parse_int(input: &mut Chars<'_>, neg: bool, first: char) -> (Option<char>, Value) {
+fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
+    let (neg, first) = if first == MINUS {
+        let second = match input.next() {
+            None => panic!("parse_int: unexpected end of input (expected digit after minus sign)"),
+            Some(c) => c,
+        };
+
+        (true, second)
+    } else {
+        (false, first)
+    };
+
     let mut acc: i64 = char_to_digit(first);
     loop {
         let next = input.next();
