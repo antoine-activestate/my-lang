@@ -24,7 +24,7 @@ fn main() {
     }
 }
 
-fn parse(input: &mut Chars<'_>) -> Value {
+fn parse(input: &mut Chars<'_>) -> (Option<char>, Value) {
     let first = match input.next() {
         None => panic!("parse: unexpected end of input"),
         Some(c) => c,
@@ -32,13 +32,13 @@ fn parse(input: &mut Chars<'_>) -> Value {
 
     // Ident
     if is_alpha(first) {
-        let (_, value) = parse_ident(input, first);
-        return value;
+        return parse_ident(input, first);
     }
 
     panic!("[2] Unexpected char '{}'", first);
 }
 
+// Ident
 fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
     let mut chars = vec![first];
     loop {
@@ -55,6 +55,10 @@ fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
     }
 }
 
+fn is_ident_next(c: char) -> bool {
+    is_alpha(c) || is_num(c) || c == UNDERSCORE
+}
+
 fn resolve_ident(ident: String) -> Value {
     match ident.as_str() {
         "Nil" => Value::Nil,
@@ -64,10 +68,7 @@ fn resolve_ident(ident: String) -> Value {
     }
 }
 
-fn is_ident_next(c: char) -> bool {
-    is_alpha(c) || is_num(c) || c == UNDERSCORE
-}
-
+// Utils
 fn is_alpha(c: char) -> bool {
     LOWER_A <= c && c <= LOWER_Z || UPPER_A <= c && c <= UPPER_Z
 }
