@@ -18,37 +18,31 @@ fn main() {
 }
 
 fn parse(input: &mut Chars<'_>) -> bool {
-    match input.next() {
-        None => panic!("[1] Unexpected end of input"),
-        Some(c) => {
-            if is_alpha(c) {
-                let ident = parse_ident(input, c);
-                println!("Ident: {ident}");
-                return true;
-            }
+    let first = match input.next() {
+        None => panic!("parse: unexpected end of input"),
+        Some(c) => c,
+    };
 
-            panic!("[2] Unexpected char '{}'", c);
-        }
+    // Ident
+    if is_alpha(first) {
+        let (_, ident) = parse_ident(input, first);
+        println!("Ident: {ident}");
+        return true;
     }
+
+    panic!("[2] Unexpected char '{}'", first);
 }
 
-fn parse_ident(input: &mut Chars<'_>, first: char) -> String {
+fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, String) {
     let mut chars = vec![first];
-
     loop {
-        let prev_input = input.clone();
-
-        match input.next() {
-            None => {
-                *input = prev_input;
-                return chars.into_iter().collect();
+        let next = input.next();
+        match next {
+            Some(c) if is_ident_next(c) => {
+                chars.push(c);
             }
-            Some(c) => {
-                if !is_ident_next(c) {
-                    *input = prev_input;
-                    return chars.into_iter().collect();
-                }
-                chars.push(c)
+            _ => {
+                return (next, chars.into_iter().collect());
             }
         }
     }
