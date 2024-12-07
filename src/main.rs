@@ -11,6 +11,7 @@ const DIGIT_9: char = '9';
 
 const DIGIT_0_INT: u32 = 0x30;
 
+const MINUS: char = '-';
 const UNDERSCORE: char = '_';
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -21,7 +22,19 @@ enum Value {
 }
 
 fn main() {
-    let cases = vec!["True", "False", "Nil", "0", "123", "0123456789"];
+    let cases = vec![
+        // Idents
+        "True",
+        "False",
+        "Nil",
+        // Ints
+        "0",
+        "123",
+        "0123456789",
+        "-0",
+        "-123",
+        "-0123456789",
+    ];
     for case in cases {
         println!("{case}: {:?}", parse(&mut case.chars()));
     }
@@ -39,11 +52,20 @@ fn parse(input: &mut Chars<'_>) -> (Option<char>, Value) {
     }
 
     // Int
-    if is_num(first) {
-        return parse_int(input, first);
+    if first == MINUS {
+        let second = match input.next() {
+            None => panic!("parse: unexpected end of input (expected digit after minus sign)"),
+            Some(c) => c,
+        };
+
+        if is_num(second) {
+            return parse_int(input, true, second);
+        }
+    } else if is_num(first) {
+        return parse_int(input, false, first);
     }
 
-    panic!("[2] Unexpected char '{}'", first);
+    panic!("parse: unexpected char '{}'", first);
 }
 
 // Ident
@@ -77,7 +99,7 @@ fn resolve_ident(ident: String) -> Value {
 }
 
 // Int
-fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
+fn parse_int(input: &mut Chars<'_>, neg: bool, first: char) -> (Option<char>, Value) {
     let mut acc: i64 = char_to_digit(first);
     loop {
         let next = input.next();
@@ -86,7 +108,8 @@ fn parse_int(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
                 acc = acc * 10 + char_to_digit(c);
             }
             _ => {
-                return (next, Value::Int(acc));
+                let signed = if neg { -acc } else { acc };
+                return (next, Value::Int(signed));
             }
         }
     }
