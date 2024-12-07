@@ -60,16 +60,16 @@ fn parse(input: &mut Chars<'_>) -> Vec<Value> {
 }
 
 fn parse_many(input: &mut Chars<'_>) -> (Option<char>, Vec<Value>) {
-    let (next, value) = parse_one(input);
-    (next, vec![value])
-}
-
-fn parse_one(input: &mut Chars<'_>) -> (Option<char>, Value) {
     let first = match parse_comments_whitespace(input) {
-        None => panic!("parse_one: unexpected end of input"),
+        None => panic!("parse_many: unexpected end of input"),
         Some(c) => c,
     };
 
+    let (next, value) = parse_one(input, first);
+    (next, vec![value])
+}
+
+fn parse_one(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
     // Ident
     if is_alpha(first) {
         return parse_ident(input, first);
