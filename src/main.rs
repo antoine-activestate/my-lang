@@ -55,7 +55,7 @@ fn main() {
                 Value::Int(0),
                 Value::Int(123),
                 Value::Str(String::from("")),
-                Value::Str(String::from("\"abc 123 éß😊\"")),
+                Value::Str(String::from("abc 123 éß😊")),
             ],
         ),
     ];
@@ -224,12 +224,12 @@ fn parse_str(input: &mut Chars<'_>) -> (Option<char>, Value) {
         match next {
             None => panic!("parse_str: unexpected end of input; expected '\"'"),
             Some('\n') => panic!("parse_str: unexpected newline; expected '\"'"),
-            Some(c) if c != QUOTE => {
+            Some(c) => {
+                if c == QUOTE {
+                    let str = acc.into_iter().collect();
+                    return (input.next(), Value::Str(str));
+                }
                 acc.push(c);
-            }
-            _ => {
-                let str = acc.into_iter().collect();
-                return (None, Value::Str(str));
             }
         }
     }
