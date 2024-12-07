@@ -11,13 +11,20 @@ const DIGIT_9: char = '9';
 
 const UNDERSCORE: char = '_';
 
-fn main() {
-    println!("{}", parse(&mut "True".chars()));
-    println!("{}", parse(&mut "False".chars()));
-    println!("{}", parse(&mut "Nil".chars()));
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Value {
+    Nil,
+    Bool(bool),
 }
 
-fn parse(input: &mut Chars<'_>) -> bool {
+fn main() {
+    let cases = vec!["True", "False", "Nil"];
+    for case in cases {
+        println!("{case}: {:?}", parse(&mut case.chars()));
+    }
+}
+
+fn parse(input: &mut Chars<'_>) -> Value {
     let first = match input.next() {
         None => panic!("parse: unexpected end of input"),
         Some(c) => c,
@@ -25,15 +32,14 @@ fn parse(input: &mut Chars<'_>) -> bool {
 
     // Ident
     if is_alpha(first) {
-        let (_, ident) = parse_ident(input, first);
-        println!("Ident: {ident}");
-        return true;
+        let (_, value) = parse_ident(input, first);
+        return value;
     }
 
     panic!("[2] Unexpected char '{}'", first);
 }
 
-fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, String) {
+fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, Value) {
     let mut chars = vec![first];
     loop {
         let next = input.next();
@@ -42,9 +48,19 @@ fn parse_ident(input: &mut Chars<'_>, first: char) -> (Option<char>, String) {
                 chars.push(c);
             }
             _ => {
-                return (next, chars.into_iter().collect());
+                let ident_str = chars.into_iter().collect();
+                return (next, resolve_ident(ident_str));
             }
         }
+    }
+}
+
+fn resolve_ident(ident: String) -> Value {
+    match ident.as_str() {
+        "Nil" => Value::Nil,
+        "False" => Value::Bool(false),
+        "True" => Value::Bool(true),
+        _ => panic!("resolve_ident: unknown identifier '{ident}'"),
     }
 }
 
